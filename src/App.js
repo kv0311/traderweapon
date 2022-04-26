@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import socketIOClient from "socket.io-client";
 
 const stream = {
-  BTCUSDT_PRICE : 'kncusdt@markPrice@1s',
+  BTCUSDT_PRICE : 'btcusdt@markPrice@1s',
   BNBUSDT_PRICE : 'bnbusdt@markPrice@1s',
   BTCUSDT_1m : 'btcusdt@kline_1m',
   BNBUSDT_1m : 'bnbusdt@kline_1m',
@@ -14,11 +14,12 @@ const stream = {
   BNBUSDT_1h : 'bnbusdt@kline_1h',
   BTCUSDT_4h : 'btcusdt@kline_4h',
   BNBUSDT_4h : 'bnbusdt@kline_4h',
-
+  BTCUSDT_1D : 'btcusdt@ticker',
+  BNBUSDT_1D : 'bnbusdt@ticker',
 }
 
 function App() {
-  const [btcPrice, setBtcPrice, ] = useState("");
+  const [btcPrice, setBtcPrice ] = useState("");
   const [bnbPrice, setBnbPrice] = useState("");
   const [btcVolumn1m, setBtcVolumn1m] = useState("");
   const [bnbVolumn1m, setBnbVolumn1m] = useState("");
@@ -31,11 +32,16 @@ function App() {
   const [btcVolumn4h, setBtcVolumn4h] = useState("");
   const [bnbVolumn4h, setBnbVolumn4h] = useState("");
 
+  const [btcPriceChange, setBtcPriceChange] = useState(0);
+  const [bnbPriceChange, setBnbPriceChange] = useState(0);
+
+
+
 
 
 
   useEffect(() => {
-    const socket = new WebSocket(`wss://fstream.binance.com/stream?streams=${stream.BTCUSDT_PRICE}/${stream.BNBUSDT_PRICE}/${stream.BTCUSDT_1m}/${stream.BNBUSDT_1m}/${stream.BNBUSDT_5m}/${stream.BNBUSDT_5m}/${stream.BTCUSDT_15m}/${stream.BNBUSDT_15m}/${stream.BNBUSDT_1h}/${stream.BNBUSDT_1h}/${stream.BNBUSDT_4h}/${stream.BNBUSDT_4h}`);
+    const socket = new WebSocket(`wss://fstream.binance.com/stream?streams=${stream.BTCUSDT_PRICE}/${stream.BNBUSDT_PRICE}/${stream.BTCUSDT_1m}/${stream.BNBUSDT_1m}/${stream.BNBUSDT_5m}/${stream.BNBUSDT_5m}/${stream.BTCUSDT_15m}/${stream.BNBUSDT_15m}/${stream.BNBUSDT_1h}/${stream.BNBUSDT_1h}/${stream.BNBUSDT_4h}/${stream.BNBUSDT_4h}/${stream.BTCUSDT_1D}/${stream.BNBUSDT_1D}`);
 
     console.log(`wss://fstream.binance.com/stream?streams=${stream.BTCUSDT_PRICE}/
     ${stream.BNBUSDT_PRICE}/
@@ -45,15 +51,18 @@ function App() {
     ${stream.BNBUSDT_5m}/
     ${stream.BTCUSDT_15m}/
     ${stream.BNBUSDT_15m}/
+    ${stream.BTCUSDT_1h}/
     ${stream.BNBUSDT_1h}/
-    ${stream.BNBUSDT_1h}/
+    ${stream.BTCUSDT_4h}/
     ${stream.BNBUSDT_4h}/
-    ${stream.BNBUSDT_4h}`)
+    ${stream.BTCUSDT_1D}/
+    ${stream.BNBUSDT_1D}`)
 
     socket.onmessage =  (data) => {
       switch (JSON.parse(data.data).stream) {
         case stream.BTCUSDT_PRICE:
-          setBtcPrice(JSON.parse(data.data).data.p);
+          console.log(parseFloat(JSON.parse(data.data).data.p))
+          setBtcPrice(parseFloat(JSON.parse(data.data).data.p));
           break;
         case stream.BNBUSDT_PRICE:
           setBnbPrice(JSON.parse(data.data).data.p);
@@ -88,8 +97,16 @@ function App() {
         case stream.BNBUSDT_4h:
           setBnbVolumn4h(JSON.parse(data.data).data.k.q);
           break;
-
-
+        case stream.BTCUSDT_1D:
+          console.log(btcPrice)
+          // console.log(parseFloat(btcPrice))
+          setBtcPriceChange(btcPrice - parseFloat(JSON.parse(data.data).data.o));
+          // setBtcPriceChange(JSON.parse(data.data).data.k.q);
+          break;
+        case stream.BNBUSDT_1D:
+          // console.log(JSON.parse(data.data))
+          setBnbVolumn4h(JSON.parse(data.data).data.k.q);
+          break;
       }
     }
 
@@ -101,15 +118,20 @@ function App() {
         <tr>
           <th>Pair</th>
           <th>Price</th>
+          <th>24H change Price</th>
+
           {/* <th>1m Volumn</th>
           <th>5m Volumn</th>
           <th>15m Volumn</th>
           <th>1h Volumn</th>
           <th>4h Volumn</th> */}
+
         </tr>
         <tr>
           <td>BTC/USDT</td>
           <td>${btcPrice}</td>
+          <td>${btcPriceChange}</td>
+
           {/* <td>${btcVolumn1m}</td>
           <td>${btcVolumn5m}</td>
           <td>${btcVolumn15m}</td>
